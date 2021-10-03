@@ -1,0 +1,28 @@
+version: '3'
+services:
+  db2:
+    image: ibmcom/db2
+    restart: always
+    privileged: true
+    ports:
+      - 50000:50000
+    environment:
+      - DB2INST1_PASSWORD=ibm123
+      - LICENSE=accept
+      - DBNAME=testdb
+  sqlpad:
+    depends_on:
+      - db2
+    image: sqlpad/sqlpad-odbc
+    build:
+      context: .
+      args:
+        - ODBC_ENABLED=true
+    hostname: sqlpad
+    ports:
+      - 3000:3000
+    environment:
+      - SQLPAD_ADMIN=admin
+      - SQLPAD_ADMIN_PASSWORD=admin
+      - SQLPAD_APP_LOG_LEVEL=debug
+      - SQLPAD_WEB_LOG_LEVEL=warn

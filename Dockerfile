@@ -1,7 +1,7 @@
 # Need to remote into this image and debug some flow? 
 # docker run -it --rm node:12.22.1-alpine3.12 /bin/ash
 FROM node:lts-buster AS build
-ARG ODBC_ENABLED=false
+ARG ODBC_ENABLED=true
 RUN apt-get update && apt-get install -y \
     python3 make g++ python3-dev  \
     && ( \
@@ -72,6 +72,30 @@ RUN mkdir -p /etc/docker-entrypoint.d \
         fi\
     ) \
     && rm -rf /var/lib/apt/lists/* 
+
+# >>> Db2 specific stuff goes here...
+COPY v11.5.6_linuxx64_odbc_cli.tar.gz .
+RUN tar -xzf v11.5.6_linuxx64_odbc_cli.tar.gz -C /opt
+RUN chown -R root:root /opt
+RUN chmod -R +x /opt
+
+RUN echo "\
+[DB2] \n\
+Description = DB2 Driver \n\
+Driver = /opt/odbc_cli/clidriver/lib/libdb2o.so \n\
+fileusage=1 \n\
+dontdlclose=1 \
+" > /etc/odbcinst.ini
+
+ENV DB2_CLI_DRIVER_INSTALL_PATH=/opt/odbc_cli/clidriver
+ENV DYLD_LIBRARY_PATH=/opt/odbc_cli/clidriver/lib
+ENV LD_LIBRARY_PATH=/opt/odbc_cli/clidriver/lib
+ENV LIBPATH=/opt/odbc_cli/clidriver/lib
+ENV PATH=/opt/odbc_cli/clidriver/bin:$PATH
+ENV PATH=/opt/odbc_cli/clidriver/adm:$PATH
+
+RUN apt-get update && apt-get install -y libxml2
+# <<<
 
 WORKDIR /usr/app
 COPY --from=build /sqlpad/docker-entrypoint /

@@ -12,3 +12,4 @@ server/drivers/sqlite/sqlpad_test_sqlite.db
 server/test/artifacts
 server/test/fixtures/sales.sqlite
 client/.eslintcache
+v11.5.6_linuxx64_odbc_cli.tar.gz
